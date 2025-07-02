@@ -1,18 +1,23 @@
 #include "LogWrapper.h"
 #include <vector>
 
-LogWrapper& LogWrapper::instance() {
+LogWrapper &LogWrapper::instance()
+{
     static LogWrapper instance;
     return instance;
 }
 
-void LogWrapper::init(const LogConfig& config) {
-    if (m_is_initialized) {
+void LogWrapper::init(const LogConfig &config)
+{
+    if (m_is_initialized)
+    {
         return;
     }
 
-    try {
-        if (config.useAsync) {
+    try
+    {
+        if (config.useAsync)
+        {
             spdlog::init_thread_pool(8192, 1);
         }
 
@@ -27,28 +32,34 @@ void LogWrapper::init(const LogConfig& config) {
         sinks.push_back(console_sink);
         sinks.push_back(rotating_file_sink);
 
-        if (config.useAsync) {
+        if (config.useAsync)
+        {
             m_logger = std::make_shared<spdlog::async_logger>(
                 config.loggerName, sinks.begin(), sinks.end(), spdlog::thread_pool(), spdlog::async_overflow_policy::block);
-        } else {
+        }
+        else
+        {
             m_logger = std::make_shared<spdlog::logger>(config.loggerName, sinks.begin(), sinks.end());
         }
 
         m_logger->set_level(config.logLevel);
         m_logger->flush_on(config.logLevel);
-        m_logger->set_pattern("[%Y-%m-%d %H:%M:%S.%f] [%^%l%$] [t %t] [%s:%#] %v");
+        m_logger->set_pattern("[%Y-%m-%d %H:%M:%S.%f] [%^%l%$] [%t] [%s:%#] : %v");
 
         spdlog::set_default_logger(m_logger);
         m_is_initialized = true;
-
-    } catch (const spdlog::spdlog_ex& ex) {
+    }
+    catch (const spdlog::spdlog_ex &ex)
+    {
         fprintf(stderr, "Log initialization failed: %s\n", ex.what());
         exit(1);
     }
 }
 
-std::shared_ptr<spdlog::logger> LogWrapper::get_logger() const {
-    if (!m_is_initialized) {
+std::shared_ptr<spdlog::logger> LogWrapper::get_logger() const
+{
+    if (!m_is_initialized)
+    {
         return nullptr;
     }
     return m_logger;
